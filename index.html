@@ -1,0 +1,742 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dawson Executive Skills Questionnaire</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Calm Teal & Slate -->
+    <!-- Application Structure Plan: The application is structured with a main navigation bar allowing users to jump between key sections: Introduction, Questionnaire, Your Profile (for results), Intervention Strategies, and Resources. This tabbed approach facilitates non-linear exploration, allowing users to focus on specific aspects of the executive skills framework. The "Your Profile" section dynamically displays results and offers clickable skill names to reveal definitions and link to specific intervention strategies. -->
+    <!-- Visualization & Content Choices: The questionnaire uses simple HTML input fields for ratings. Results are displayed as text scores and a bar chart (Chart.js Canvas) to visually compare executive skill strengths and weaknesses. Skill definitions are presented in a dynamic modal or dedicated section. Intervention strategies are organized in an accordion for easy browsing. No SVG graphics used. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .nav-active {
+            background-color: #0d9488; /* teal-600 */
+            color: white;
+        }
+        .nav-inactive {
+            background-color: white;
+            color: #334155; /* slate-700 */
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Max width for charts */
+            margin-left: auto;
+            margin-right: auto;
+            height: auto;
+            max-height: 400px; /* Max height for charts */
+        }
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 350px; /* Adjust height for larger screens */
+            }
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-content {
+            background-color: #fefefe;
+            margin: auto;
+            padding: 20px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 700px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            position: relative;
+        }
+        .close-button {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+        .close-button:hover,
+        .close-button:focus {
+            color: black;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .score-input {
+            width: 60px;
+            padding: 0.5rem;
+            border: 1px solid #cbd5e1;
+            border-radius: 0.375rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+
+    <div id="app" class="container mx-auto p-4 md:p-6 lg:p-8 max-w-7xl">
+        
+        <header class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-bold text-teal-700">Executive Skills Questionnaire</h1>
+            <p class="text-lg md:text-xl text-slate-600 mt-2">Peg Dawson & Richard Guare</p>
+        </header>
+
+        <nav id="main-nav" class="sticky top-0 z-10 bg-white/80 backdrop-blur-sm shadow-md rounded-lg mb-8 flex flex-wrap justify-center items-center gap-2 p-2">
+            <button data-target="intro" class="nav-button nav-active px-4 py-2 rounded-md font-semibold transition-colors duration-200 text-sm md:text-base">1. Introduction</button>
+            <button data-target="questionnaire" class="nav-button nav-inactive px-4 py-2 rounded-md font-semibold transition-colors duration-200 text-sm md:text-base">2. Questionnaire</button>
+            <button data-target="profile" class="nav-button nav-inactive px-4 py-2 rounded-md font-semibold transition-colors duration-200 text-sm md:text-base">3. Your Profile</button>
+            <button data-target="interventions" class="nav-button nav-inactive px-4 py-2 rounded-md font-semibold transition-colors duration-200 text-sm md:text-base">4. Interventions</button>
+            <button data-target="resources" class="nav-button nav-inactive px-4 py-2 rounded-md font-semibold transition-colors duration-200 text-sm md:text-base">5. Resources</button>
+        </nav>
+
+        <main id="main-content">
+
+            <section id="intro" class="content-section space-y-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-2xl font-bold text-teal-700 mb-4">Welcome to the Executive Skills Questionnaire</h2>
+                    <p class="text-slate-600 mb-4">This interactive tool is based on the Executive Skills Questionnaire by Peg Dawson & Richard Guare. It's designed to help you reflect on your own executive skills, understand your strengths and weaknesses, and explore strategies for development.</p>
+                    <p class="text-slate-600 mb-4">Executive skills are the brain-based skills needed to execute tasks, from planning and organization to emotional control and problem-solving. Understanding these skills can provide valuable insights for personal and professional growth.</p>
+                    <p class="text-slate-600">Navigate through the sections using the menu above:</p>
+                    <ul class="list-disc list-inside text-slate-600 ml-4">
+                        <li><strong>Questionnaire:</strong> Rate yourself on various items to assess your executive skills.</li>
+                        <li><strong>Your Profile:</strong> View your calculated scores, identify your strengths and weaknesses, and explore definitions of each skill.</li>
+                        <li><strong>Intervention Strategies:</strong> Discover practical environmental modifications and teaching strategies to support executive skill development.</li>
+                        <li><strong>Resources:</strong> Find additional books and helpful websites for further learning.</li>
+                    </ul>
+                </div>
+            </section>
+
+            <section id="questionnaire" class="content-section hidden space-y-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-2xl font-bold text-teal-700 mb-4">The Executive Skills Questionnaire</h2>
+                    <p class="text-slate-600 mb-6">Read each item below and then rate that item based on the extent to which you agree or disagree with how well it describes you. Use the rating scale below to choose the appropriate score.</p>
+                    
+                    <div class="mb-6 p-4 bg-slate-100 rounded-md">
+                        <h3 class="font-semibold text-slate-700 mb-2">Rating Scale:</h3>
+                        <p class="text-sm text-slate-600">
+                            1 = Strongly disagree, 2 = Disagree, 3 = Tend to disagree, 4 = Neutral, 5 = Tend to agree, 6 = Agree, 7 = Strongly agree
+                        </p>
+                    </div>
+
+                    <form id="executive-skills-form" class="space-y-6">
+                        <!-- Questions will be dynamically loaded here -->
+                    </form>
+                    <button id="submit-questionnaire" class="mt-8 px-6 py-3 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition-colors duration-200 font-semibold">Calculate My Scores</button>
+                    <div id="form-status" class="mt-4 text-sm text-red-600"></div>
+                </div>
+            </section>
+
+            <section id="profile" class="content-section hidden space-y-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-2xl font-bold text-teal-700 mb-4">Your Executive Profile</h2>
+                    <p class="text-slate-600 mb-6">Based on your responses, here is an overview of your executive skill strengths and areas for development. Click on any skill name to view its definition.</p>
+                    
+                    <div class="grid md:grid-cols-2 gap-8 items-start">
+                        <div>
+                            <h3 class="text-xl font-semibold mb-4 text-slate-700">Your Scores:</h3>
+                            <div id="scores-display" class="space-y-2">
+                                <p class="text-slate-500 italic">Complete the questionnaire to see your scores.</p>
+                            </div>
+                            <h3 class="text-xl font-semibold mb-4 mt-6 text-slate-700">Strengths (2-3 Highest Scores):</h3>
+                            <ul id="strengths-list" class="list-disc list-inside text-slate-700">
+                                <li class="text-slate-500 italic">Complete the questionnaire to see your strengths.</li>
+                            </ul>
+                            <h3 class="text-xl font-semibold mb-4 mt-6 text-slate-700">Weaknesses (2-3 Lowest Scores):</h3>
+                            <ul id="weaknesses-list" class="list-disc list-inside text-slate-700">
+                                <li class="text-slate-500 italic">Complete the questionnaire to see your weaknesses.</li>
+                            </ul>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="profileChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="interventions" class="content-section hidden space-y-8">
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-2xl font-bold text-teal-700 mb-4">Intervention Strategies</h2>
+                    <p class="text-slate-600 mb-6">Explore practical environmental modifications and teaching strategies to support the development of specific executive skills. Click on a skill to reveal its associated strategies.</p>
+                    <div id="intervention-accordion" class="space-y-3">
+                        <!-- Intervention strategies will be dynamically loaded here -->
+                    </div>
+                </div>
+            </section>
+
+            <section id="resources" class="content-section hidden space-y-6">
+                <div class="bg-white p-6 rounded-lg shadow-sm">
+                    <h2 class="text-2xl font-bold text-teal-700 mb-4">Resources for Further Learning</h2>
+                    <p class="text-slate-600 mb-6">Deepen your understanding of executive skills with these recommended books and helpful websites.</p>
+                    <div id="resources-list" class="space-y-4">
+                        <h3 class="text-xl font-semibold text-slate-700 mb-3">Books on Executive Skills</h3>
+                        <ul id="books-list" class="list-disc list-inside text-slate-600 ml-4 space-y-1"></ul>
+                        <h3 class="text-xl font-semibold text-slate-700 mb-3 mt-6">Helpful Websites</h3>
+                        <ul id="websites-list" class="list-disc list-inside text-slate-600 ml-4 space-y-1"></ul>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal for Skill Definitions -->
+    <div id="skillDefinitionModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <h3 id="modal-skill-title" class="text-2xl font-bold text-teal-700 mb-4"></h3>
+            <p id="modal-skill-definition" class="text-slate-700"></p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const navButtons = document.querySelectorAll('.nav-button');
+            const contentSections = document.querySelectorAll('.content-section');
+            const questionnaireForm = document.getElementById('executive-skills-form');
+            const submitQuestionnaireBtn = document.getElementById('submit-questionnaire');
+            const formStatusDiv = document.getElementById('form-status');
+            const scoresDisplay = document.getElementById('scores-display');
+            const strengthsList = document.getElementById('strengths-list');
+            const weaknessesList = document.getElementById('weaknesses-list');
+            const interventionAccordion = document.getElementById('intervention-accordion');
+            const booksList = document.getElementById('books-list');
+            const websitesList = document.getElementById('websites-list');
+            const skillDefinitionModal = document.getElementById('skillDefinitionModal');
+            const closeModalButton = document.querySelector('#skillDefinitionModal .close-button');
+            const modalSkillTitle = document.getElementById('modal-skill-title');
+            const modalSkillDefinition = document.getElementById('modal-skill-definition');
+
+            let profileChartInstance = null; // To store the Chart.js instance
+
+            const questionnaireItems = [
+                { id: 'item1', text: 'I don\'t jump to conclusions', skill: 'Response Inhibition' },
+                { id: 'item2', text: 'I think before I speak.', skill: 'Response Inhibition' },
+                { id: 'item3', text: 'I don\'t take action without having all the facts.', skill: 'Response Inhibition' },
+                { id: 'item4', text: 'I have a good memory for facts, dates, and details.', skill: 'Working Memory' },
+                { id: 'item5', text: 'I am very good at remembering the things I have committed to do.', skill: 'Working Memory' },
+                { id: 'item6', text: 'I seldom need reminders to complete tasks', skill: 'Working Memory' },
+                { id: 'item7', text: 'My emotions seldom get in the way when performing on the job.', skill: 'Emotional Control' },
+                { id: 'item8', text: 'Little things do not affect me emotionally or distract me from the task at hand.', skill: 'Emotional Control' },
+                { id: 'item9', text: 'I can defer my personal feelings until after a task has been completed', skill: 'Emotional Control' },
+                { id: 'item10', text: 'No matter what the task, I believe in getting started as soon as possible.', skill: 'Task Initiation' },
+                { id: 'item11', text: 'Procrastination is usually not a problem for me.', skill: 'Task Initiation' },
+                { id: 'item12', text: 'I seldom leave tasks to the last minute', skill: 'Task Initiation' },
+                { id: 'item13', text: 'I find it easy to stay focused on my work.', skill: 'Sustained Attention' },
+                { id: 'item14', text: 'Once I start an assignment, I work diligently until it\'s completed.', skill: 'Sustained Attention' },
+                { id: 'item15', text: 'Even when interrupted, I find it easy to get back and complete the job at hand.', skill: 'Sustained Attention' },
+                { id: 'item16', text: 'When I plan out my day, I identify priorities and stick to them', skill: 'Planning/Prioritization' },
+                { id: 'item17', text: 'When I have a lot to do, I can easily focus on the most important things.', skill: 'Planning/Prioritization' },
+                { id: 'item18', text: 'I typically break big tasks down into subtasks and timelines.', skill: 'Planning/Prioritization' },
+                { id: 'item19', text: 'I am an organized person.', skill: 'Organization' },
+                { id: 'item20', text: 'It is natural for me to keep my work area neat and organized.', skill: 'Organization' },
+                { id: 'item21', text: 'I am good at maintaining systems for organizing my work.', skill: 'Organization' },
+                { id: 'item22', text: 'At the end of the day, I\'ve usually finished what I set out to do.', skill: 'Time Management' },
+                { id: 'item23', text: 'I am good at estimating how long it takes to do something.', skill: 'Time Management' },
+                { id: 'item24', text: 'I am usually on time for appointments and activities.', skill: 'Time Management' },
+                { id: 'item25', text: 'I take unexpected events in stride.', skill: 'Flexibility' },
+                { id: 'item26', text: 'I easily adjust to changes in plans and priorities.', skill: 'Flexibility' },
+                { id: 'item27', text: 'I consider myself to be flexible and adaptive to change.', skill: 'Flexibility' },
+                { id: 'item28', text: 'I routinely evaluate my performance and devise methods for personal improvement.', skill: 'Metacognition' },
+                { id: 'item29', text: 'I am able to step back from a situation in order to make objective decisions.', skill: 'Metacognition' },
+                { id: 'item30', text: 'I "read" situations well and can adjust my behavior based on the reactions of others.', skill: 'Metacognition' },
+                { id: 'item31', text: 'I think of myself as being driven to meet my goals.', skill: 'Goal-Directed Persistence' },
+                { id: 'item32', text: 'I easily give up immediate pleasures to work on long-term goals.', skill: 'Goal-Directed Persistence' },
+                { id: 'item33', text: 'I believe in setting and achieving high levels of performance.', skill: 'Goal-Directed Persistence' },
+                { id: 'item34', text: 'I enjoy working in a highly demanding, fast-paced environment.', skill: 'Stress Tolerance' },
+                { id: 'item35', text: 'A certain amount of pressure helps me to perform at my best.', skill: 'Stress Tolerance' },
+                { id: 'item36', text: 'Jobs that include a fair degree of unpredictability appeal to me.', skill: 'Stress Tolerance' }
+            ];
+
+            const executiveSkillDefinitions = {
+                'Response Inhibition': 'The capacity to think before you act - this ability to resist the urge to say or do something allows us the time to evaluate a situation and how our behavior might impact it. In the young child, waiting for a short period without being disruptive is an example of response inhibition while in the adolescent it would be demonstrated by accepting a referee\'s call without an argument.',
+                'Working Memory': 'The ability to hold information in memory while performing complex tasks. It incorporates the ability to draw on past learning or experience to apply to the situation at hand or to project into the future. A young child, for example can hold in mind and follow 1-2 step directions while the middle school child can remember the expectations of multiple teachers.',
+                'Emotional Control': 'The ability to manage emotions in order to achieve goals, complete tasks, or control and direct behavior. A young child with this skill is able to recover from a disappointment in a short time. A teenager is able to manage the anxiety of a game or test and still perform.',
+                'Sustained Attention': 'The capacity to maintain attention to a situation or task in spite of distractibility, fatigue, or boredom. Completing a 5-minute chore with occasional supervision is an example of sustained attention in the younger child. The teenager is able to attend to homework, with short breaks, for one to two hours.',
+                'Task Initiation': 'The ability to begin projects without undue procrastination, in an efficient or timely fashion. A young child is able to start a chore or assignment right after instructions are given. A high school student does not wait until the last minute to begin a project.',
+                'Planning/Prioritization': 'The ability to create a roadmap to reach a goal or to complete a task. It also involves being able to make decisions about what\'s important to focus on and what\'s not important. A young child, with coaching, can think of options to settle a peer conflict. A teenager can formulate a plan to get a job.',
+                'Organization': 'The ability to create and maintain systems to keep track of information or materials. A young child can, with a reminder, put toys in a designated place. An adolescent can organize and locate sports equipment.',
+                'Time Management': 'The capacity to estimate how much time one has, how to allocate it, and how to stay within time limits and deadlines. It also involves a sense that time is important. A young child can complete a short job within a time limit set by an adult. A high school student can establish a schedule to meet task deadlines.',
+                'Goal-Directed Persistence': 'The capacity to have a goal, follow through to the completion of the goal, and not be put off by or distracted by competing interests. A first grader can complete a job in order to get to recess. A teenager can earn and save money over time to buy something of importance.',
+                'Flexibility': 'The ability to revise plans in the face of obstacles, setbacks, new information or mistakes. It relates to an adaptability to changing conditions. A young child can adjust to a change in plans without major distress. A high school student can accept an alternative such as a different job when the first choice is not available.',
+                'Metacognition': 'The ability to stand back and take a birds-eye view of oneself in a situation. It is an ability to observe how you problem solve. It also includes self-monitoring and self-evaluative skills (e.g., asking yourself, "How am I doing? or How did I do?"). A young child can change behavior is response to feedback from an adult. A teenager can monitor and critique her performance and improve it by observing others who are more skilled.',
+                'Stress Tolerance': 'The ability to thrive in stressful situations and to cope with uncertainty, change, and performance demands.'
+            };
+
+            const interventionStrategiesData = [
+                {
+                    skill: 'Response Inhibition',
+                    environmental: [
+                        'Increase external controls',
+                        'Restrict access',
+                        'Post home or classroom rules and review regularly',
+                        'Discourage "multi-tasking" - e.g., build in technology breaks rather than having kids combine homework with technology use'
+                    ],
+                    teaching: [
+                        'Prompt the child (external to internal)',
+                        'Teach wait/stop',
+                        'Teach delayed gratification (apps: Token Board)'
+                    ]
+                },
+                {
+                    skill: 'Working Memory',
+                    environmental: [
+                        'Use orthotic memory devices',
+                        'Principle of "off-loading"',
+                        'Agenda books/calendars',
+                        'To do lists (paper, white board to post prominently)',
+                        'Electronic devices & apps (Wunderlist, Nudge, BugMe!)'
+                    ],
+                    teaching: [
+                        'Directions/Past experience (prompt them to access it)',
+                        'Generate options for reminders and have them choose (or elicit options from student)',
+                        'Mentally rehearse association between cue and working memory'
+                    ]
+                },
+                {
+                    skill: 'Emotional Control',
+                    environmental: [
+                        'Reduce or eliminate triggers',
+                        'Give child a script to follow',
+                        'Remove child from problem situation'
+                    ],
+                    teaching: [
+                        'Teach kids to recognize situations or early signs',
+                        'Graded exposure/guided mastery',
+                        'Teach coping strategy',
+                        'Rehearse the strategy repeatedly until it is internalized',
+                        'Use Hard Times Board',
+                        'Teach mindfulness meditation (http://thehawnfoundation.org/mindup/)'
+                    ]
+                },
+                {
+                    skill: 'Flexibility',
+                    environmental: [
+                        'General rule: Limit flexibility demand',
+                        'Reduce novelty',
+                        'Highlight similarities',
+                        'Provide a template',
+                        'Put in place a default strategy',
+                        'Turn open-ended tasks into closed-ended tasks',
+                        'Make steps more explicit',
+                        '"Normalize" errors',
+                        'Introduce new situations'
+                    ],
+                    teaching: [
+                        'Increase support',
+                        'Present expectations',
+                        'Walk them through the task',
+                        'Give plans or rules for managing situations',
+                        'Think aloud',
+                        'Teach error factor',
+                        'Change tolerance by gradual exposure',
+                        'Introduce change (lightning bolt-preferred to non-preferred)'
+                    ]
+                },
+                {
+                    skill: 'Task Initiation',
+                    environmental: [
+                        'Provide cues/prompts',
+                        'Reduce perceived effort/task demand',
+                        'Walk through first step-build behavioral momentum',
+                        'Make help readily available',
+                        'Establish set time to do non-preferred tasks',
+                        'Apps: Lickety Split, Good Habit Maker, FTVS (First Then Visual Schedule, Chore Pad HD, ChoreMonster)'
+                    ],
+                    teaching: [
+                        'Have the child select cueing system',
+                        'Help the child limit initial demand',
+                        'Help the child select reinforcer',
+                        'Help the child make a plan for doing the task'
+                    ]
+                },
+                {
+                    skill: 'Sustained Attention',
+                    environmental: [
+                        'Reduce distractions (seating arrangements, white noise)',
+                        'Prompt to attend (look, listen, respond)',
+                        'Modify/limit task length or demand (end in sight)',
+                        'Build in variety/choice',
+                        'Choose best time of day',
+                        'Immediately reinforce (pay attention to them while they\'re paying attention)',
+                        'Use sand timers and/or fidget toys such as stress balls (www.officeplayground.com)',
+                        'App: Lickety Split, Chore Monster, iRewardChart, Motivaider, Chore Pad HD'
+                    ],
+                    teaching: [
+                        'Teach self-monitoring/peer coaching',
+                        'Have the child identify something to look forward to',
+                        'Teach mindfulness meditation'
+                    ]
+                },
+                {
+                    skill: 'Planning/Prioritization',
+                    environmental: [
+                        'Demonstrate what a plan is',
+                        'Help child design a plan/template',
+                        'Provide planning tools (calendar, agenda book, apps e.g., Choiceworks, CanPlan)'
+                    ],
+                    teaching: [
+                        'Walk through the planning process (use a template)',
+                        'Have them apply plan to a simple task and gradually prompt to do more of the planning themselves',
+                        'Ask questions to get child to prioritize (What do you need? What should you do first?)'
+                    ]
+                },
+                {
+                    skill: 'Organization',
+                    environmental: [
+                        'Demonstrate principle of off-loading with example from their lives',
+                        'Work with them to create scheme, template or picture/photograph',
+                        'Show organizational tools and have them try them out (e.g., Inspiration)',
+                        'Structure the environment to promote organization'
+                    ],
+                    teaching: [
+                        'Help them walk through the process. Have them motorically practice it (a long-term process, requiring that they put a system in place that\'s monitored, initially on a daily basis).',
+                        'Give them choices of organizational systems and have them choose/modify the one they like best.',
+                        'Ask students to evaluate current systems and challenge them to improve them.'
+                    ]
+                },
+                {
+                    skill: 'Time Management',
+                    environmental: [
+                        'Make schedules and time limits explicit',
+                        'Work with kids to make a schedule to follow and prompt each step of the way',
+                        'Picture schedules',
+                        'Clocks, alarms',
+                        'Tablet/phone apps (Choiceworks, Pomodoro)',
+                        'Timers (app: Sand Timer; www.timetimer.com)'
+                    ],
+                    teaching: [
+                        'Show them ways to mark time and let them practice.',
+                        'Practice estimating how long it takes to do something.',
+                        'Help them to follow schedules (daily events to homework plans).'
+                    ]
+                },
+                {
+                    skill: 'Goal-Directed Persistence',
+                    environmental: [
+                        'Establish goals with kids',
+                        'Reward kids for persistence (sticking with difficult tasks)-use verbal reinforcers as much as possible',
+                        'Make sure the goal or benchmark is in sight',
+                        'Apps: Token Board'
+                    ],
+                    teaching: [
+                        'Point out to kids how they already set goals but they may not know what they are. Define goals as something that people want to get better at or to change.',
+                        'Ask kids to set small, achievable goals, or a goal for something they want to do outside of school, or set class goals.'
+                    ]
+                },
+                {
+                    skill: 'Metacognition',
+                    environmental: [
+                        'Specify what is to be evaluated and how (goal or objective)',
+                        'Evaluate performance for the student',
+                        'Provide sample to match or error-monitoring checklist',
+                        'Embed metacognitive questions into instruction/conversations'
+                    ],
+                    teaching: [
+                        'Help child decide on how performance will be evaluated',
+                        'Have the child evaluate her performance',
+                        'Compare evaluations',
+                        'Teach students to ask questions',
+                        'What\'s my problem?',
+                        'What\'s my plan?',
+                        'Am I following I my plan?',
+                        'How did I do?'
+                    ]
+                },
+                {
+                    skill: 'Stress Tolerance',
+                    environmental: [
+                        'Teach coping strategies for stress (e.g., deep breathing, physical activity, breaks)',
+                        'Provide a calm-down corner or designated quiet space',
+                        'Gradually introduce new or challenging situations with support',
+                        'Model healthy stress management'
+                    ],
+                    teaching: [
+                        'Discuss different types of stress and how they feel',
+                        'Help students identify personal stress triggers',
+                        'Teach problem-solving steps for stressful situations',
+                        'Encourage self-advocacy for support when feeling overwhelmed',
+                        'Practice relaxation techniques (e.g., progressive muscle relaxation, guided imagery)'
+                    ]
+                }
+            ];
+
+            const booksData = [
+                'Anderson, V.A., Jacobs, P., & Anderson, P. (Eds.). (2008). Executive functions and the frontal lobes: A lifespan perspective. New York: Taylor & Francis.',
+                'Cooper-Kahn, J. & Foster, M. (2013). Boosting executive skills in the classroom: A practical guide for educators. San Francisco: Jossey-Bass.',
+                'Cooper-Kahn, J. & Foster, M. (2013). Late, lost, and unprepared. Bethesda, MD: Woodbine House.',
+                'Dawson, P. & Guare, R. (2012). Coaching students with executive skills deficits. New York: The Guilford Press.',
+                'Dawson, P. & Guare, R. (2011). Executive skills in children and adolescents: A practical guide to assessment and intervention. 2nd Edition. New York: The Guilford Press.',
+                'Dawson, P. & Guare, R. (2009). Smart but scattered: The revolutionary "executive skills" approach to helping kids reach their potential. New York: The Guilford Press.',
+                'Guare, R., Dawson, P., & Guare, C. (2012). Smart but scattered teens. New York: The Guilford Press',
+                'Kaufman, C. (2010). Executive functions in the classroom. Baltimore, MD: Paul H. Brookes',
+                'Meltzer, L. (2010). Promoting executive function in the classroom.',
+                'McCloskey, G., Perkins, L. A., & Van Divner, B. (2009). Assessment and intervention for executive function difficulties. New York: Taylor & Francis Group'
+            ];
+
+            const websitesData = [
+                { name: 'smartbutscatteredkids.com', url: 'http://smartbutscatteredkids.com' },
+                { name: 'efintheclassroom.net', url: 'http://www.efintheclassroom.net' },
+                { name: 'efs2therescue.ca', url: 'http://efs2therescue.ca' },
+                { name: 'learningworksforkids.com', url: 'http://learningworksforkids.com' },
+                { name: 'pbs.org/wgbh/pages/frontline/shows/teenbrain/view/', url: 'http://www.pbs.org/wgbh/pages/frontline/shows/teenbrain/view/' },
+                { name: 'developingchild.harvard.edu', url: 'http://developingchild.harvard.edu' },
+                { name: 'brainfacts.org', url: 'http://www.brainfacts.org' },
+                { name: 'nytimes.com/interactive/2008/09/15/health/20080915-brain-development.html', url: 'http://www.nytimes.com/interactive/2008/09/15/health/20080915-brain-development.html?_r=0' },
+                { name: 'toolsofthemind.org', url: 'http://www.toolsofthemind.org' },
+                { name: 'gonoodle.com', url: 'https://www.gonoodle.com' }
+            ];
+
+            function navigate(targetId) {
+                contentSections.forEach(section => {
+                    section.classList.toggle('hidden', section.id !== targetId);
+                });
+                navButtons.forEach(button => {
+                    button.classList.toggle('nav-active', button.dataset.target === targetId);
+                    button.classList.toggle('nav-inactive', button.dataset.target !== targetId);
+                });
+            }
+
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => navigate(button.dataset.target));
+            });
+
+            function renderQuestionnaire() {
+                questionnaireForm.innerHTML = questionnaireItems.map((item, index) => `
+                    <div class="flex flex-col md:flex-row md:items-center justify-between p-3 border-b border-slate-200 last:border-b-0">
+                        <label for="${item.id}" class="block text-slate-700 mb-2 md:mb-0 md:w-3/4">${index + 1}. ${item.text}</label>
+                        <input type="number" id="${item.id}" name="${item.skill}" min="1" max="7" class="score-input md:w-1/4" required>
+                    </div>
+                `).join('');
+            }
+
+            function calculateScores() {
+                const scores = {};
+                let allAnswered = true;
+                questionnaireItems.forEach(item => {
+                    const input = document.getElementById(item.id);
+                    const value = parseInt(input.value);
+                    if (isNaN(value) || value < 1 || value > 7) {
+                        allAnswered = false;
+                        input.classList.add('border-red-500'); // Highlight missing/invalid inputs
+                    } else {
+                        input.classList.remove('border-red-500');
+                        scores[item.skill] = (scores[item.skill] || 0) + value;
+                    }
+                });
+
+                if (!allAnswered) {
+                    formStatusDiv.textContent = 'Please answer all questions (scores 1-7).';
+                    return null;
+                } else {
+                    formStatusDiv.textContent = '';
+                }
+                return scores;
+            }
+
+            function displayProfile(scores) {
+                scoresDisplay.innerHTML = Object.keys(scores).map(skill => `
+                    <p class="text-slate-700"><strong><a href="#" class="text-teal-600 hover:underline" data-skill="${skill}">${skill}</a>:</strong> ${scores[skill]}</p>
+                `).join('');
+
+                const sortedSkills = Object.keys(scores).sort((a, b) => scores[a] - scores[b]);
+                
+                // Strengths (highest scores)
+                strengthsList.innerHTML = '';
+                for (let i = 0; i < Math.min(3, sortedSkills.length); i++) {
+                    const skill = sortedSkills[sortedSkills.length - 1 - i];
+                    strengthsList.innerHTML += `<li><a href="#" class="text-teal-600 hover:underline" data-skill="${skill}">${skill}</a> (${scores[skill]})</li>`;
+                }
+                if (strengthsList.innerHTML === '') {
+                     strengthsList.innerHTML = '<li class="text-slate-500 italic">No strengths identified yet.</li>';
+                }
+
+                // Weaknesses (lowest scores)
+                weaknessesList.innerHTML = '';
+                for (let i = 0; i < Math.min(3, sortedSkills.length); i++) {
+                    const skill = sortedSkills[i];
+                    weaknessesList.innerHTML += `<li><a href="#" class="text-teal-600 hover:underline" data-skill="${skill}">${skill}</a> (${scores[skill]})</li>`;
+                }
+                if (weaknessesList.innerHTML === '') {
+                     weaknessesList.innerHTML = '<li class="text-slate-500 italic">No weaknesses identified yet.</li>';
+                }
+
+                // Add click listeners to skill names to show definitions
+                document.querySelectorAll('#profile a[data-skill]').forEach(link => {
+                    link.addEventListener('click', function(event) {
+                        event.preventDefault();
+                        const skillName = this.dataset.skill;
+                        showSkillDefinition(skillName);
+                    });
+                });
+
+                renderProfileChart(scores);
+                navigate('profile');
+            }
+
+            submitQuestionnaireBtn.addEventListener('click', function() {
+                const scores = calculateScores();
+                if (scores) {
+                    displayProfile(scores);
+                }
+            });
+
+            function renderProfileChart(scores) {
+                const ctx = document.getElementById('profileChart').getContext('2d');
+                if (profileChartInstance) {
+                    profileChartInstance.destroy(); // Destroy existing chart before creating a new one
+                }
+
+                const skillNames = Object.keys(scores);
+                const skillScores = Object.values(scores);
+
+                profileChartInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: skillNames,
+                        datasets: [{
+                            label: 'Your Executive Skill Score',
+                            data: skillScores,
+                            backgroundColor: '#0d9488', // Teal-600
+                            borderColor: '#0f766e',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        indexAxis: 'y', // Horizontal bars
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    title: function(context) {
+                                        return context[0].label;
+                                    },
+                                    label: function(context) {
+                                        return 'Score: ' + context.raw;
+                                    },
+                                    afterBody: function(context) {
+                                        const skillName = context[0].label;
+                                        return executiveSkillDefinitions[skillName] || '';
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                max: 21, // Max score for 3 items * 7 points
+                                title: {
+                                    display: true,
+                                    text: 'Score (Max 21 per skill)'
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    autoSkip: false,
+                                    maxRotation: 0,
+                                    minRotation: 0,
+                                    callback: function(value, index, values) {
+                                        const label = this.getLabelForValue(value);
+                                        if (label.length > 16) {
+                                            return label.split(' ').map((word, i, arr) => {
+                                                if (i === 0) return word;
+                                                if ((word.length + arr[i-1].length) > 16 && arr.length > 1) {
+                                                    return '\n' + word;
+                                                }
+                                                return word;
+                                            }).join(' ');
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function showSkillDefinition(skillName) {
+                modalSkillTitle.textContent = skillName;
+                modalSkillDefinition.textContent = executiveSkillDefinitions[skillName] || 'Definition not found.';
+                skillDefinitionModal.style.display = 'flex'; // Use flex to center
+            }
+
+            closeModalButton.addEventListener('click', () => {
+                skillDefinitionModal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (event) => {
+                if (event.target === skillDefinitionModal) {
+                    skillDefinitionModal.style.display = 'none';
+                }
+            });
+
+            function renderInterventionStrategies() {
+                interventionAccordion.innerHTML = interventionStrategiesData.map(data => `
+                    <div>
+                        <button class="accordion-button w-full text-left p-4 bg-slate-100 hover:bg-slate-200 rounded-lg font-semibold text-slate-700 flex justify-between items-center">
+                            <span>${data.skill}</span>
+                            <span class="transform transition-transform duration-300">▼</span>
+                        </button>
+                        <div class="accordion-content bg-white p-4 rounded-b-lg border-x border-b border-slate-200">
+                            <h4 class="font-semibold text-slate-700 mb-2">Environmental Modification:</h4>
+                            <ul class="list-disc list-inside text-slate-600 mb-4">
+                                ${data.environmental.map(item => `<li>${item}</li>`).join('')}
+                            </ul>
+                            <h4 class="font-semibold text-slate-700 mb-2">Teaching Strategy:</h4>
+                            <ul class="list-disc list-inside text-slate-600">
+                                ${data.teaching.map(item => `<li>${item}</li>`).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                `).join('');
+
+                document.querySelectorAll('#intervention-accordion .accordion-button').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const content = button.nextElementSibling;
+                        const icon = button.querySelector('span:last-child');
+                        if (content.style.maxHeight) {
+                            content.style.maxHeight = null;
+                            icon.style.transform = 'rotate(0deg)';
+                        } else {
+                            document.querySelectorAll('#intervention-accordion .accordion-content').forEach(c => c.style.maxHeight = null);
+                            document.querySelectorAll('#intervention-accordion .accordion-button span:last-child').forEach(i => i.style.transform = 'rotate(0deg)');
+                            content.style.maxHeight = content.scrollHeight + "px";
+                            icon.style.transform = 'rotate(180deg)';
+                        }
+                    });
+                });
+            }
+
+            function renderResources() {
+                booksList.innerHTML = booksData.map(book => `<li>${book}</li>`).join('');
+                websitesList.innerHTML = websitesData.map(site => `<li><a href="${site.url}" target="_blank" rel="noopener noreferrer" class="text-teal-600 hover:underline">${site.name}</a></li>`).join('');
+            }
+
+            // Initial renders
+            renderQuestionnaire();
+            renderInterventionStrategies();
+            renderResources();
+            navigate('intro'); // Start on the introduction page
+        });
+    </script>
+
+</body>
+</html>
